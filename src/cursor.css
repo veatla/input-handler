@@ -1,0 +1,13 @@
+.cursor {
+  height: 19px;
+  top: 190px;
+  left: 0px;
+  letter-spacing: 0px;
+  display: block;
+  padding-left: 0px;
+  width: 2px;
+
+  position: absolute;
+
+  background-color: white;
+}

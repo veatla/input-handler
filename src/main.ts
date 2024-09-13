@@ -1,5 +1,15 @@
+import { cursor } from "./cursor";
 import "./font.css";
 import "./style.css";
+
+const element = document.createElement("div");
+element.classList.add("cursor");
+
+cursor.on(() => {
+  const height = element.clientHeight;
+  element.style.left = `${cursor.col * 10}px`;
+  element.style.top = `${height * cursor.line}px`;
+});
 
 const block = document.createElement("div");
 
@@ -14,7 +24,7 @@ const cursorCoordinatorKeys = [
   "End",
   "PageUp",
   "PageDown",
-];
+] as const;
 
 const special_keys = [
   "Alt",
@@ -27,8 +37,6 @@ const special_keys = [
 
   // Numpad5 & NumLock Disabled
   "Clear",
-
-  ...cursorCoordinatorKeys,
   ...inputModifierKeys,
 ];
 
@@ -53,7 +61,52 @@ const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
   return content;
 };
 
+const setCursor = (key: string) => {
+  switch (key) {
+    case cursorCoordinatorKeys["0"]:
+      cursor.set(cursor.col, cursor.line + 1);
+      break;
+
+    case cursorCoordinatorKeys["1"]:
+      cursor.set(Math.max(cursor.col - 1, 0), cursor.line);
+      break;
+
+    case cursorCoordinatorKeys["2"]:
+      cursor.set(cursor.col + 1, cursor.line);
+      break;
+
+    case cursorCoordinatorKeys["3"]:
+      cursor.set(cursor.col, Math.max(cursor.line - 1, 0));
+      break;
+
+    case cursorCoordinatorKeys["4"]:
+      cursor.set(0, cursor.line);
+      break;
+
+    case cursorCoordinatorKeys["5"]:
+      // TODO Calculate max col
+      cursor.set(1, cursor.line);
+      break;
+
+    case cursorCoordinatorKeys["6"]:
+      // TODO Calculate max col
+      cursor.set(1, cursor.line);
+      break;
+
+    default:
+      break;
+  }
+};
+
 const inputHandler = (event: KeyboardEvent) => {
+  if (
+    cursorCoordinatorKeys.includes(
+      event.key as (typeof cursorCoordinatorKeys)[number]
+    )
+  ) {
+    setCursor(event.key);
+    return;
+  }
   if (!isInputKey(event.key)) return;
   event.preventDefault();
 
@@ -63,4 +116,4 @@ const inputHandler = (event: KeyboardEvent) => {
 window.addEventListener("keydown", inputHandler);
 const root = document.getElementById("app");
 
-root?.append(block);
+root?.append(block, element);

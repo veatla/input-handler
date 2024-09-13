@@ -1,3 +1,4 @@
+@import url('./cursor.css');
 :root {
   font-family: "Fira Code", "Droid Sans Mono", "monospace", monospace;
   font-weight: normal;
@@ -96,3 +97,4 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
