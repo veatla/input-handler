@@ -1,33 +1,43 @@
+import "./font.css";
 import "./style.css";
 
-const content = document.createElement("div");
+const block = document.createElement("div");
+
+const inputModifierKeys = ["Enter", "Tab", "Delete", "Backspace"];
+
+const cursorCoordinatorKeys = [
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown",
+];
 
 const special_keys = [
   "Alt",
   "Control",
   "Escape",
-  "Tab",
   "Shift",
   "NumLock",
-  "Delete",
   "Insert",
-  "Enter",
   "CapsLock",
-  "End",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
+
+  // Numpad5 & NumLock Disabled
   "Clear",
-  "Home",
-  "PageUp",
-  "PageDown",
+
+  ...cursorCoordinatorKeys,
+  ...inputModifierKeys,
 ];
+
+const isInputKey = (key: string): boolean => {
+  return !special_keys.includes(key) || inputModifierKeys.includes(key);
+};
 
 const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
   let content = value;
-
-  if (special_keys.includes(event.key)) return value;
 
   switch (event.key) {
     case "Backspace":
@@ -44,10 +54,13 @@ const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
 };
 
 const inputHandler = (event: KeyboardEvent) => {
-  content.textContent = getKeyboardEventValue(event, content.textContent || "");
+  if (!isInputKey(event.key)) return;
+  event.preventDefault();
+
+  block.textContent = getKeyboardEventValue(event, block.textContent || "");
 };
 
 window.addEventListener("keydown", inputHandler);
 const root = document.getElementById("app");
 
-root?.append(content);
+root?.append(block);
