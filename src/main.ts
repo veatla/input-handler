@@ -22,7 +22,6 @@ const updateCursorPosition = () => {
   if (element instanceof HTMLSpanElement) {
     const size = getTextSize(element);
 
-
     cursor_element.style.left = size;
     cursor_element.style.top = `${
       parseInt(CONFIG.lineHeight) * cursor.line + 1
@@ -36,16 +35,32 @@ const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
   switch (event.key) {
     case "Tab":
       content += `&nbsp;&nbsp;`;
+
+      setTimeout(() => {
+        cursor.set(cursor.col + 2, cursor.line);
+      }, 0);
       break;
 
     case "Backspace":
-      content = content.slice(0, content.length - 1);
+      content = content.slice(0, cursor.col - 1) + content.slice(cursor.col);
+
+      setTimeout(() => {
+        cursor.set(cursor.col - 1, cursor.line);
+      }, 0);
+      break;
+
+    case "Delete":
+      content = content.slice(0, cursor.col) + content.slice(cursor.col + 1);
       break;
 
     default:
       if (event.ctrlKey || event.metaKey || event.altKey) break;
       content =
         content.slice(0, cursor.col) + event.key + content.slice(cursor.col);
+
+      setTimeout(() => {
+        cursor.set(cursor.col + 1, cursor.line);
+      }, 0);
       break;
   }
 
@@ -85,9 +100,6 @@ const inputHandler = (event: KeyboardEvent) => {
   const value = getKeyboardEventValue(event, element.textContent || "");
 
   element.innerHTML = value;
-  setTimeout(() => {
-    cursor.set(cursor.col + 1, cursor.line);
-  }, 0);
 };
 
 window.addEventListener("keydown", inputHandler);
