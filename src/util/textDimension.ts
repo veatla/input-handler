@@ -1,4 +1,4 @@
-import { cursor } from "../cursor";
+import { cursor } from "../cursor/cursor";
 
 const canvas = document.createElement("canvas");
 const getTextSize = (content: HTMLSpanElement) => {

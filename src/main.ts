@@ -1,56 +1,12 @@
-import { cursor } from "./cursor";
+import CONFIG from "./config";
+import { cursorCoordinatorKeys, CursorCoordinatorKeys } from "./constants/keys";
+import { cursor, cursor_element } from "./cursor/cursor";
 import "./font.css";
 import "./style.css";
+import { isInputKey, isFunctionalKey, setCursor } from "./util/keyEvent";
 import getTextSize from "./util/textDimension";
 
-//  KEY HANDLER UTILS START
-const inputModifierKeys = ["Enter", "Tab", "Delete", "Backspace"];
-
-const cursorCoordinatorKeys = [
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
-  "Home",
-  "End",
-  "PageUp",
-  "PageDown",
-] as const;
-
-const special_keys = [
-  "Alt",
-  "Control",
-  "Escape",
-  "Shift",
-  "NumLock",
-  "Insert",
-  "CapsLock",
-
-  // Numpad5 & NumLock Disabled
-  "Clear",
-  ...inputModifierKeys,
-];
-
-type CursorCoordinatorKeys = (typeof cursorCoordinatorKeys)[number];
-
-const isInputKey = (key: string): boolean => {
-  return !special_keys.includes(key) || inputModifierKeys.includes(key);
-};
-
-const isFunctionalKey = (key: string): boolean => {
-  if (/F([0-9])+/.test(key)) return true;
-  return false;
-};
-//  KEY HANDLER UTILS END
-
 const wrapper = document.createElement("div");
-
-const cursor_element = document.createElement("div");
-
-const block = document.createElement("div");
-const text = document.createElement('span');
-
-cursor_element.classList.add("cursor");
 
 cursor.on(() => {
   const height = cursor_element.clientHeight;
@@ -60,26 +16,26 @@ cursor.on(() => {
 });
 
 const updateCursorPosition = () => {
-  const element = wrapper.querySelector(`div:nth-of-type(${cursor.line + 1}) span`);
+  const element = wrapper.querySelector(
+    `div:nth-of-type(${cursor.line + 1}) span`
+  );
   if (element instanceof HTMLSpanElement) {
     const size = getTextSize(element);
 
+
     cursor_element.style.left = size;
+    cursor_element.style.top = `${
+      parseInt(CONFIG.lineHeight) * cursor.line + 1
+    }px`;
   }
 };
-
-setInterval(() => {
-  const visibility = cursor_element.style.visibility;
-  cursor_element.style.visibility =
-    visibility === "visible" ? "hidden" : "visible";
-}, 500);
 
 const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
   let content = value;
 
   switch (event.key) {
     case "Tab":
-      content += `&nbsp;`;
+      content += `&nbsp;&nbsp;`;
       break;
 
     case "Backspace":
@@ -88,48 +44,12 @@ const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
 
     default:
       if (event.ctrlKey || event.metaKey || event.altKey) break;
-      content += event.key;
+      content =
+        content.slice(0, cursor.col) + event.key + content.slice(cursor.col);
       break;
   }
 
   return content;
-};
-
-const setCursor = (key: string) => {
-  switch (key) {
-    case cursorCoordinatorKeys["0"]:
-      cursor.set(cursor.col, cursor.line + 1);
-      break;
-
-    case cursorCoordinatorKeys["1"]:
-      cursor.set(Math.max(cursor.col - 1, 0), cursor.line);
-      break;
-
-    case cursorCoordinatorKeys["2"]:
-      cursor.set(cursor.col + 1, cursor.line);
-      break;
-
-    case cursorCoordinatorKeys["3"]:
-      cursor.set(cursor.col, Math.max(cursor.line - 1, 0));
-      break;
-
-    case cursorCoordinatorKeys["4"]:
-      cursor.set(0, cursor.line);
-      break;
-
-    case cursorCoordinatorKeys["5"]:
-      // TODO Calculate max col
-      cursor.set(1, cursor.line);
-      break;
-
-    case cursorCoordinatorKeys["6"]:
-      // TODO Calculate max col
-      cursor.set(1, cursor.line);
-      break;
-
-    default:
-      break;
-  }
 };
 
 const inputHandler = (event: KeyboardEvent) => {
@@ -142,9 +62,29 @@ const inputHandler = (event: KeyboardEvent) => {
 
   if (isFunctionalKey(event.key)) return;
 
-  const value = getKeyboardEventValue(event, text.textContent || "");
+  let element = wrapper.querySelector(
+    `div:nth-of-type(${cursor.line + 1}) span`
+  );
 
-  text.innerHTML = value;
+  if (!element) {
+    const block = document.createElement("div");
+    element = document.createElement("span");
+    block.appendChild(element);
+    wrapper.appendChild(block);
+  }
+
+  if (event.key === "Enter") {
+    const block = document.createElement("div");
+    const new_element = document.createElement("span");
+    new_element.textContent = "";
+    block.appendChild(new_element);
+    element.parentElement!.after(block);
+    cursor.set(0, cursor.line + 1);
+    return;
+  }
+  const value = getKeyboardEventValue(event, element.textContent || "");
+
+  element.innerHTML = value;
   setTimeout(() => {
     cursor.set(cursor.col + 1, cursor.line);
   }, 0);
@@ -153,6 +93,4 @@ const inputHandler = (event: KeyboardEvent) => {
 window.addEventListener("keydown", inputHandler);
 const root = document.getElementById("app");
 
-block.append(text);
-wrapper.appendChild(block);
 root?.append(wrapper, cursor_element);

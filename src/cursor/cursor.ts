@@ -21,3 +21,12 @@ if (import.meta.hot) {
     console.log("Cleared listeners");
   });
 }
+export const cursor_element = document.createElement("div");
+
+cursor_element.classList.add("cursor");
+
+setInterval(() => {
+  const visibility = cursor_element.style.visibility;
+  cursor_element.style.visibility =
+    visibility === "visible" ? "hidden" : "visible";
+}, 500);
