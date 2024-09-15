@@ -15,12 +15,13 @@ export const cursor = {
   col: 0,
   line: 0,
   set(col: number, line: number) {
+    if (col === -1 || line === -1) console.trace(col, line);
     this.col = col;
     this.line = line;
   },
 
-  updateCursorPos(line: number, col: number) {
-    const element = wrapper.querySelector(`div[data-line="${line}"] span`);
+  updateCursorPos(col: number, line: number) {
+    const element = wrapper.querySelector(`div[data-line="${line + 1}"] span`);
 
     if (!element) return;
     if (element instanceof HTMLSpanElement) {

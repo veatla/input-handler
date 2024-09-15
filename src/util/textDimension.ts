@@ -7,13 +7,10 @@ const getTextSize = (content: HTMLSpanElement, col: number) => {
   if (!context) throw new Error("Unable to find canvas context to measureText");
 
   context.font = CONFIG.font;
-  const { width, fontBoundingBoxAscent, fontBoundingBoxDescent } = context.measureText(text);
+  const { width, fontBoundingBoxAscent } = context.measureText(text);
   const formattedWidth = Math.ceil(width) + "px";
   const top = Math.ceil(fontBoundingBoxAscent) + "px";
 
-  console.log(
-    fontBoundingBoxAscent, fontBoundingBoxDescent
-  )
   return {
     top,
     left: formattedWidth,

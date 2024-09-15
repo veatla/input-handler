@@ -1,4 +1,3 @@
-import CONFIG from "./config";
 import { cursorCoordinatorKeys, CursorCoordinatorKeys } from "./constants/keys";
 import { cursor, cursor_element } from "./cursor/cursor";
 import "./font.css";
@@ -8,13 +7,12 @@ export const wrapper = document.createElement("div");
 
 const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
   let content = element.textContent || "";
-  let col = 0,
-    line = 0;
+  let col = cursor.col,
+    line = cursor.line;
   switch (event.key) {
     case "Tab":
       content += `&nbsp;&nbsp;`;
-      col = cursor.col + 2;
-      line = cursor.line;
+      col += 2;
       break;
 
     case "Backspace":
@@ -23,12 +21,11 @@ const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
         if (cursor.line >= 0) {
           col =
             element.parentElement!.previousSibling?.textContent?.length || 0;
-          line = cursor.line - 1;
+          line -= 1;
           element.remove();
         }
       } else {
-        line = cursor.line;
-        col = cursor.col - 1;
+        col -= 1;
       }
       break;
 
@@ -41,16 +38,25 @@ const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
       content =
         content.slice(0, cursor.col) + event.key + content.slice(cursor.col);
 
-      col = cursor.col + 1;
-      line = cursor.line;
+      col += 1;
       break;
   }
 
   element.textContent = content;
   return {
-    col, line
-  }
+    col,
+    line,
+  };
 };
+
+const createBlock = (line: number) => {
+  const block = document.createElement("div");
+  block.setAttribute("data-line", String(line));
+  block.classList.add("block");
+  const element = document.createElement("span");
+  block.appendChild(element);
+  return element;
+}
 
 const inputHandler = (event: KeyboardEvent) => {
   if (cursorCoordinatorKeys.includes(event.key as CursorCoordinatorKeys)) {
@@ -68,31 +74,25 @@ const inputHandler = (event: KeyboardEvent) => {
   );
 
   if (!element) {
-    const block = document.createElement("div");
-    block.setAttribute("data-line", String(cursor.line + 1));
-    block.classList.add("block");
-    element = document.createElement("span");
-    block.appendChild(element);
-    wrapper.appendChild(block);
+    element = createBlock(cursor.line + 1);
+    wrapper.appendChild(element.parentElement!);
   }
 
   if (event.key === "Enter") {
-    const block = document.createElement("div");
-    block.classList.add("block");
-    block.setAttribute("data-line", String(cursor.line + 2));
-    const new_element = document.createElement("span");
+    const new_element = createBlock(cursor.line + 2);
     new_element.textContent = "";
-    block.appendChild(new_element);
-    element.parentElement!.after(block);
-
+    element.parentElement!.after(new_element.parentElement!);
     new_element.scrollIntoView();
-    cursor.set(0, cursor.line + 1);
-    cursor.updateCursorPos(0, cursor.line + 1);
+    setTimeout(() => {
+      cursor.set(0, cursor.line + 1);
+      cursor.updateCursorPos(0, cursor.line);
+    }, 0);
     return;
   }
   const val = getKeyboardEventValue(event, element);
   element.scrollIntoView();
-  cursor.updateCursorPos(val.line, val.col);
+  cursor.set(val.col, val.line);
+  cursor.updateCursorPos(val.col, val.line);
 };
 
 window.addEventListener("keydown", inputHandler);

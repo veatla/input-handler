@@ -24,7 +24,12 @@ export const setCursor = (key: string) => {
       break;
 
     case cursorCoordinatorKeys["1"]:
-      col -= 1;
+      if (col - 1 > -1) {
+        col = Math.max(col - 1, 0);
+      } else {
+        col = 0;
+        line = Math.max(line - 1, 0);
+      }
       break;
 
     case cursorCoordinatorKeys["2"]:
@@ -32,7 +37,7 @@ export const setCursor = (key: string) => {
       break;
 
     case cursorCoordinatorKeys["3"]:
-      line -= 1;
+      line = Math.max(line - 1, 0);
       break;
 
     case cursorCoordinatorKeys["4"]:
@@ -50,5 +55,6 @@ export const setCursor = (key: string) => {
     default:
       break;
   }
-  cursor.updateCursorPos(line, col);
+  cursor.set(col, line);
+  cursor.updateCursorPos(col, line);
 };
