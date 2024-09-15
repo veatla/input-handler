@@ -1,4 +1,8 @@
-import { special_keys, inputModifierKeys, cursorCoordinatorKeys } from "../constants/keys";
+import {
+  special_keys,
+  inputModifierKeys,
+  cursorCoordinatorKeys,
+} from "../constants/keys";
 import { cursor } from "../cursor/cursor";
 
 export const isInputKey = (key: string): boolean => {
@@ -10,40 +14,41 @@ export const isFunctionalKey = (key: string): boolean => {
   return false;
 };
 
-
 export const setCursor = (key: string) => {
+  let col = cursor.col,
+    line = cursor.line;
+
   switch (key) {
     case cursorCoordinatorKeys["0"]:
-      cursor.set(cursor.col, cursor.line + 1);
+      line += 1;
       break;
 
     case cursorCoordinatorKeys["1"]:
-      cursor.set(Math.max(cursor.col - 1, 0), cursor.line);
+      col -= 1;
       break;
 
     case cursorCoordinatorKeys["2"]:
-      cursor.set(cursor.col + 1, cursor.line);
+      col += 1;
       break;
 
     case cursorCoordinatorKeys["3"]:
-      cursor.set(cursor.col, Math.max(cursor.line - 1, 0));
+      line -= 1;
       break;
 
     case cursorCoordinatorKeys["4"]:
-      cursor.set(0, cursor.line);
+      col = 0;
       break;
 
     case cursorCoordinatorKeys["5"]:
       // TODO Calculate max col
-      cursor.set(1, cursor.line);
       break;
 
     case cursorCoordinatorKeys["6"]:
       // TODO Calculate max col
-      cursor.set(1, cursor.line);
       break;
 
     default:
       break;
   }
+  cursor.updateCursorPos(line, col);
 };

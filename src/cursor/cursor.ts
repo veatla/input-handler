@@ -1,4 +1,15 @@
-const listeners = new Set<() => void>();
+import CONFIG from "../config";
+import { wrapper } from "../main";
+import getTextSize from "../util/textDimension";
+
+const events = {
+  listeners: new Set<() => void>(),
+  emit: () => {
+    setTimeout(() => {
+      events.listeners.forEach((v) => v());
+    });
+  },
+};
 
 export const cursor = {
   col: 0,
@@ -6,21 +17,24 @@ export const cursor = {
   set(col: number, line: number) {
     this.col = col;
     this.line = line;
+  },
 
-    listeners.forEach((v) => v());
+  updateCursorPos(line: number, col: number) {
+    const element = wrapper.querySelector(`div[data-line="${line}"] span`);
+
+    if (!element) return;
+    if (element instanceof HTMLSpanElement) {
+      const { left } = getTextSize(element, col);
+      cursor_element.style.left = left;
+      cursor_element.style.top = `${parseInt(CONFIG.lineHeight) * line}px`;
+    }
   },
 
   on(listener: () => void) {
-    listeners.add(listener);
+    events.listeners.add(listener);
   },
 };
 
-if (import.meta.hot) {
-  import.meta.hot.dispose(() => {
-    listeners.clear();
-    console.log("Cleared listeners");
-  });
-}
 export const cursor_element = document.createElement("div");
 
 cursor_element.classList.add("cursor");
@@ -29,4 +43,5 @@ setInterval(() => {
   const visibility = cursor_element.style.visibility;
   cursor_element.style.visibility =
     visibility === "visible" ? "hidden" : "visible";
+  events.emit();
 }, 500);

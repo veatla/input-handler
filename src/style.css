@@ -17,6 +17,8 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --block-height: 19px;
 }
 
 a {
@@ -98,3 +100,6 @@ button:focus-visible {
   }
 }
 
+.block {
+  height: var(--block-height);
+}

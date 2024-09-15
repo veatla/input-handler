@@ -4,49 +4,32 @@ import { cursor, cursor_element } from "./cursor/cursor";
 import "./font.css";
 import "./style.css";
 import { isInputKey, isFunctionalKey, setCursor } from "./util/keyEvent";
-import getTextSize from "./util/textDimension";
+export const wrapper = document.createElement("div");
 
-const wrapper = document.createElement("div");
-
-cursor.on(() => {
-  const height = cursor_element.clientHeight;
-  // cursor_element.style.left = `${cursor.col * 10}px`;
-  cursor_element.style.top = `${height * cursor.line}px`;
-  updateCursorPosition();
-});
-
-const updateCursorPosition = () => {
-  const element = wrapper.querySelector(
-    `div:nth-of-type(${cursor.line + 1}) span`
-  );
-  if (element instanceof HTMLSpanElement) {
-    const size = getTextSize(element);
-
-    cursor_element.style.left = size;
-    cursor_element.style.top = `${
-      parseInt(CONFIG.lineHeight) * cursor.line + 1
-    }px`;
-  }
-};
-
-const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
-  let content = value;
-
+const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
+  let content = element.textContent || "";
+  let col = 0,
+    line = 0;
   switch (event.key) {
     case "Tab":
       content += `&nbsp;&nbsp;`;
-
-      setTimeout(() => {
-        cursor.set(cursor.col + 2, cursor.line);
-      }, 0);
+      col = cursor.col + 2;
+      line = cursor.line;
       break;
 
     case "Backspace":
       content = content.slice(0, cursor.col - 1) + content.slice(cursor.col);
-
-      setTimeout(() => {
-        cursor.set(cursor.col - 1, cursor.line);
-      }, 0);
+      if (cursor.col - 1 < 0) {
+        if (cursor.line >= 0) {
+          col =
+            element.parentElement!.previousSibling?.textContent?.length || 0;
+          line = cursor.line - 1;
+          element.remove();
+        }
+      } else {
+        line = cursor.line;
+        col = cursor.col - 1;
+      }
       break;
 
     case "Delete":
@@ -58,13 +41,15 @@ const getKeyboardEventValue = (event: KeyboardEvent, value: string): string => {
       content =
         content.slice(0, cursor.col) + event.key + content.slice(cursor.col);
 
-      setTimeout(() => {
-        cursor.set(cursor.col + 1, cursor.line);
-      }, 0);
+      col = cursor.col + 1;
+      line = cursor.line;
       break;
   }
 
-  return content;
+  element.textContent = content;
+  return {
+    col, line
+  }
 };
 
 const inputHandler = (event: KeyboardEvent) => {
@@ -73,16 +58,19 @@ const inputHandler = (event: KeyboardEvent) => {
     return;
   }
   if (!isInputKey(event.key)) return;
+  if (event.ctrlKey || event.metaKey || event.altKey) return;
   event.preventDefault();
 
   if (isFunctionalKey(event.key)) return;
 
   let element = wrapper.querySelector(
-    `div:nth-of-type(${cursor.line + 1}) span`
+    `div[data-line="${cursor.line + 1}"] span`
   );
 
   if (!element) {
     const block = document.createElement("div");
+    block.setAttribute("data-line", String(cursor.line + 1));
+    block.classList.add("block");
     element = document.createElement("span");
     block.appendChild(element);
     wrapper.appendChild(block);
@@ -90,16 +78,21 @@ const inputHandler = (event: KeyboardEvent) => {
 
   if (event.key === "Enter") {
     const block = document.createElement("div");
+    block.classList.add("block");
+    block.setAttribute("data-line", String(cursor.line + 2));
     const new_element = document.createElement("span");
     new_element.textContent = "";
     block.appendChild(new_element);
     element.parentElement!.after(block);
+
+    new_element.scrollIntoView();
     cursor.set(0, cursor.line + 1);
+    cursor.updateCursorPos(0, cursor.line + 1);
     return;
   }
-  const value = getKeyboardEventValue(event, element.textContent || "");
-
-  element.innerHTML = value;
+  const val = getKeyboardEventValue(event, element);
+  element.scrollIntoView();
+  cursor.updateCursorPos(val.line, val.col);
 };
 
 window.addEventListener("keydown", inputHandler);
