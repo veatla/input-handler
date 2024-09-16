@@ -3,20 +3,39 @@ import { cursor, cursor_element } from "./cursor/cursor";
 import "./font.css";
 import "./style.css";
 import { isInputKey, isFunctionalKey, setCursor } from "./util/keyEvent";
+
 export const wrapper = document.createElement("div");
 
+const insertString = (element: Element, str: string, col: number) => {
+  let html = element.innerHTML.replace(/&nbsp;/g, " ");
+
+  html = html.slice(0, col) + str + html.slice(col);
+
+  element.innerHTML = html.replace(/ /g, "&nbsp;");
+};
+
+const removeString = (element: Element, start: number, end: number) => {
+  let html = element.innerHTML.replace(/&nbsp;/g, " ");
+
+  html = html.slice(0, start) + html.slice(end);
+
+  element.textContent = html.replace(/ /g, "&nbsp;");
+};
+
 const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
-  let content = element.textContent || "";
   let col = cursor.col,
     line = cursor.line;
+
+  if (!cursor.total[line]) cursor.total = [];
   switch (event.key) {
     case "Tab":
-      content += `&nbsp;&nbsp;`;
+      element.innerHTML += `&nbsp;&nbsp;`;
       col += 2;
+      cursor.total[line] = col;
       break;
 
     case "Backspace":
-      content = content.slice(0, cursor.col - 1) + content.slice(cursor.col);
+      removeString(element, cursor.col - 1, cursor.col);
       if (cursor.col - 1 < 0) {
         if (cursor.line >= 0) {
           col =
@@ -30,19 +49,18 @@ const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
       break;
 
     case "Delete":
-      content = content.slice(0, cursor.col) + content.slice(cursor.col + 1);
+      element.innerHTML =
+        element.innerHTML.slice(0, cursor.col) +
+        element.innerHTML.slice(cursor.col + 1);
       break;
 
     default:
       if (event.ctrlKey || event.metaKey || event.altKey) break;
-      content =
-        content.slice(0, cursor.col) + event.key + content.slice(cursor.col);
-
+      insertString(element, event.key, col);
       col += 1;
       break;
   }
 
-  element.textContent = content;
   return {
     col,
     line,
@@ -56,19 +74,12 @@ const createBlock = (line: number) => {
   const element = document.createElement("span");
   block.appendChild(element);
   return element;
-}
+};
 
 const inputHandler = (event: KeyboardEvent) => {
-  if (cursorCoordinatorKeys.includes(event.key as CursorCoordinatorKeys)) {
-    setCursor(event.key);
-    return;
-  }
-  if (!isInputKey(event.key)) return;
   if (event.ctrlKey || event.metaKey || event.altKey) return;
-  event.preventDefault();
-
   if (isFunctionalKey(event.key)) return;
-
+  event.preventDefault();
   let element = wrapper.querySelector(
     `div[data-line="${cursor.line + 1}"] span`
   );
@@ -77,6 +88,12 @@ const inputHandler = (event: KeyboardEvent) => {
     element = createBlock(cursor.line + 1);
     wrapper.appendChild(element.parentElement!);
   }
+
+  if (cursorCoordinatorKeys.includes(event.key as CursorCoordinatorKeys)) {
+    setCursor(event, element);
+    return;
+  }
+  if (!isInputKey(event.key)) return;
 
   if (event.key === "Enter") {
     const new_element = createBlock(cursor.line + 2);
@@ -94,8 +111,12 @@ const inputHandler = (event: KeyboardEvent) => {
   cursor.set(val.col, val.line);
   cursor.updateCursorPos(val.col, val.line);
 };
+wrapper.contentEditable = 'true';
 
-window.addEventListener("keydown", inputHandler);
 const root = document.getElementById("app");
 
 root?.append(wrapper, cursor_element);
+
+wrapper.addEventListener("keydown", inputHandler);
+
+wrapper.focus();

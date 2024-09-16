@@ -14,8 +14,12 @@ const events = {
 export const cursor = {
   col: 0,
   line: 0,
+  total: [] as number[],
   set(col: number, line: number) {
-    if (col === -1 || line === -1) console.trace(col, line);
+    if (col === -1 || line === -1) {
+      throw new Error("Trying to set col or line to -1");
+    }
+
     this.col = col;
     this.line = line;
   },
