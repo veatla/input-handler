@@ -17,9 +17,8 @@ export const isFunctionalKey = (key: string): boolean => {
 
 // let selection_start = null as null | number;
 // let selRange: Range | null;
-export const setCursor = (event: KeyboardEvent, element: Element) => {
-  const shiftKey = event.shiftKey,
-    key = event.key;
+export const setCursor = (event: KeyboardEvent) => {
+  const key = event.key;
   let col = cursor.col,
     line = cursor.line;
   // const selection = shiftKey ? window.getSelection() : null;

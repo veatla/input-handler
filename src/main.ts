@@ -90,7 +90,7 @@ const inputHandler = (event: KeyboardEvent) => {
   }
 
   if (cursorCoordinatorKeys.includes(event.key as CursorCoordinatorKeys)) {
-    setCursor(event, element);
+    setCursor(event);
     return;
   }
   if (!isInputKey(event.key)) return;
