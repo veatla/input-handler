@@ -1,6 +1,6 @@
 import { cursorCoordinatorKeys, CursorCoordinatorKeys } from "../constants/keys";
 import { cursor } from "../cursor/cursor";
-import { createBlock, removeString, insertString } from "./actions";
+import { createBlock, removeString, insertString, removePrevString, removeNextString } from "./actions";
 import { wrapper } from "../main";
 import { isFunctionalKey, isInputKey } from "../util/key-event";
 import { setCursor } from "../cursor/controller";
@@ -18,6 +18,21 @@ export const getKeyboardEventValue = (event: KeyboardEvent, element: Element) =>
       break;
 
     case "Backspace":
+      if (event.ctrlKey) {
+
+        const removed = removePrevString(element, cursor.col);
+        
+        if (cursor.col - removed < 0) {
+          if (cursor.line >= 0) {
+            col = element.parentElement!.previousSibling?.textContent?.length || 0;
+            line -= 1;
+            element.remove();
+          }
+        } else {
+          col -= removed;
+        }
+        break;
+      }
       removeString(element, cursor.col - 1, cursor.col);
       if (cursor.col - 1 < 0) {
         if (cursor.line >= 0) {
@@ -31,6 +46,10 @@ export const getKeyboardEventValue = (event: KeyboardEvent, element: Element) =>
       break;
 
     case "Delete":
+      if (event.ctrlKey) {
+        removeNextString(element, cursor.col);
+        break;
+      }
       element.innerHTML =
         element.innerHTML.slice(0, cursor.col) + element.innerHTML.slice(cursor.col + 1);
       break;
@@ -49,7 +68,7 @@ export const getKeyboardEventValue = (event: KeyboardEvent, element: Element) =>
 };
 
 export const inputHandler = (event: KeyboardEvent) => {
-  if (event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.metaKey || event.altKey) return;
   if (isFunctionalKey(event.key)) return;
   event.preventDefault();
   let element = wrapper.querySelector(`div[data-line="${cursor.line + 1}"] span`);
