@@ -1,6 +1,6 @@
 import CONFIG from "../config";
 import { wrapper } from "../main";
-import getTextSize from "../util/textDimension";
+import getTextSize from "../util/text-dimension";
 
 const events = {
   listeners: new Set<() => void>(),

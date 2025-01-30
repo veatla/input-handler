@@ -1,22 +1,6 @@
-import {
-  special_keys,
-  inputModifierKeys,
-  cursorCoordinatorKeys,
-} from "../constants/keys";
-import { cursor } from "../cursor/cursor";
-// import { wrapper } from "../main";
+import { cursorCoordinatorKeys } from "../constants/keys";
+import { cursor } from "./cursor";
 
-export const isInputKey = (key: string): boolean => {
-  return !special_keys.includes(key) || inputModifierKeys.includes(key);
-};
-
-export const isFunctionalKey = (key: string): boolean => {
-  if (/F([0-9])+/.test(key)) return true;
-  return false;
-};
-
-// let selection_start = null as null | number;
-// let selRange: Range | null;
 export const setCursor = (event: KeyboardEvent) => {
   const key = event.key;
   let col = cursor.col,
