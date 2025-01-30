@@ -8,6 +8,8 @@
   width: 2px;
 
   position: absolute;
+  touch-action: none;
+  cursor: text;
 
-  background-color: white;
+  background-color: rgb(0, 0, 0);
 }

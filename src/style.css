@@ -102,4 +102,9 @@ button:focus-visible {
 
 .block {
   height: var(--block-height);
+  width: 100%;
+}
+.container {
+  width: 100%;
+  min-height: var(--block-height);
 }

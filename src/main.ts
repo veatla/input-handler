@@ -1,10 +1,13 @@
+import CONFIG from "./config";
 import { cursorCoordinatorKeys, CursorCoordinatorKeys } from "./constants/keys";
 import { cursor, cursor_element } from "./cursor/cursor";
 import "./font.css";
 import "./style.css";
 import { isInputKey, isFunctionalKey, setCursor } from "./util/keyEvent";
+import { get_block_text_widths } from "./util/textDimension";
 
 export const wrapper = document.createElement("div");
+wrapper.classList.add("container");
 
 const insertString = (element: Element, str: string, col: number) => {
   let html = element.innerHTML.replace(/&nbsp;/g, " ");
@@ -38,8 +41,7 @@ const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
       removeString(element, cursor.col - 1, cursor.col);
       if (cursor.col - 1 < 0) {
         if (cursor.line >= 0) {
-          col =
-            element.parentElement!.previousSibling?.textContent?.length || 0;
+          col = element.parentElement!.previousSibling?.textContent?.length || 0;
           line -= 1;
           element.remove();
         }
@@ -50,8 +52,7 @@ const getKeyboardEventValue = (event: KeyboardEvent, element: Element) => {
 
     case "Delete":
       element.innerHTML =
-        element.innerHTML.slice(0, cursor.col) +
-        element.innerHTML.slice(cursor.col + 1);
+        element.innerHTML.slice(0, cursor.col) + element.innerHTML.slice(cursor.col + 1);
       break;
 
     default:
@@ -80,9 +81,7 @@ const inputHandler = (event: KeyboardEvent) => {
   if (event.ctrlKey || event.metaKey || event.altKey) return;
   if (isFunctionalKey(event.key)) return;
   event.preventDefault();
-  let element = wrapper.querySelector(
-    `div[data-line="${cursor.line + 1}"] span`
-  );
+  let element = wrapper.querySelector(`div[data-line="${cursor.line + 1}"] span`);
 
   if (!element) {
     element = createBlock(cursor.line + 1);
@@ -111,12 +110,28 @@ const inputHandler = (event: KeyboardEvent) => {
   cursor.set(val.col, val.line);
   cursor.updateCursorPos(val.col, val.line);
 };
-wrapper.contentEditable = 'true';
+// wrapper.contentEditable = "true";
 
 const root = document.getElementById("app");
 
 root?.append(wrapper, cursor_element);
 
-wrapper.addEventListener("keydown", inputHandler);
+const clickHandler = (event: MouseEvent) => {
+  const target = event.target as HTMLDivElement;
+  
+  const line_data = target.parentElement?.getAttribute('data-line');
+  if (!line_data || isNaN(Number(line_data))) return;
+
+  const content = target.textContent ?? "";
+  const width = target.parentElement!.clientWidth;
+
+  const  index = get_block_text_widths(content, width, event.clientX);
+  const line = Number(line_data) - 1;
+  cursor.set(index, line);
+  cursor.updateCursorPos(index, line);
+};
+
+document.addEventListener("keydown", inputHandler);
+wrapper.addEventListener("mousedown", clickHandler);
 
 wrapper.focus();
