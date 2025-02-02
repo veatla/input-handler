@@ -70,10 +70,16 @@ export const getKeyboardEventValue = (event: KeyboardEvent, element: Element) =>
 export const inputHandler = (event: KeyboardEvent) => {
   if (event.metaKey || event.altKey) return;
   if (isFunctionalKey(event.key)) return;
+  if (event.code === "KeyR" && event.ctrlKey) return;
+  if (event.code === "KeyT" && event.ctrlKey) return;
+  if (event.code === "KeyI" && event.ctrlKey) return;
+  if (event.code === "KeyV" && event.ctrlKey) return;
+  if (event.code === "KeyC" && event.ctrlKey) return;
   event.preventDefault();
-  let element = wrapper.querySelector(`div[data-line="${cursor.line + 1}"] span`);
 
+  let element = wrapper.querySelector(`div[data-line="${cursor.line + 1}"] span`);
   if (!element) {
+    // ensure there is a element
     element = createBlock(cursor.line + 1);
     wrapper.appendChild(element.parentElement!);
   }
