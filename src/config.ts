@@ -1,4 +1,5 @@
 class Config {
+    tabWidth = 4;
     fontSize = "14px";
 
     lineHeight = "19px";
